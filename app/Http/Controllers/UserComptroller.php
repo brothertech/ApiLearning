@@ -142,7 +142,7 @@ class UserComptroller extends Controller
             // }
             //If Email already exist
             $userCount =User::where('email', $userData['email'])->count();
-            if($userCount){
+            if($userCount >0){
 
                 $message = "Email already Exist";
 
