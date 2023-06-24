@@ -58,6 +58,37 @@ class UserComptroller extends Controller
 
             $userData = $request->input();
             // echo "<pre>"; print_r($userData); die;
+
+            // if(!(empty($userData['name']) || empty($userData['email']) || empty($userData['password']))){
+            //     $message ='Please enter valid credential';
+            //     return response()->json([
+
+            //         'status' =>false,
+            //         'message' =>$message
+            //     ], 422);
+
+            // }
+
+            // if (empty($userData['name']) || empty($userData['email']) || empty($userData['password'])) {
+            //     $message = 'Please enter valid credentials.';
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => $message
+            //     ], 422);
+            // }
+            
+
+            //validation of email takes place here
+
+                
+                        if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                            $message_email ='Please enter valid email address';
+                        return response()->json([
+                            'message' =>$message_email
+                        ], 422);
+
+                        }
+
             $user = new User();
             $user->name=$userData['name'];
             $user->email=$userData['email'];
@@ -88,35 +119,72 @@ class UserComptroller extends Controller
 
             $userData =$request->input();
 
-            // foreach($userData['users'] as $key =>$value){
+            //Validation of APIs
 
-            //     $user= new User();
-            //     $user->name = $value['name'];
-            //     $user ->email = $value['email'];
-            //     $user ->password =bcrypt($value ['password']);
-            //     $user->save();
+            // if(empty($userData['name']) || empty($userData['email']) || empty($userData['password'])){
+            //     $message ='Please enter valid credential';
             //     return response()->json([
-            //         'status' =>200,
-            //         'message' =>'Users Added succesfully!'
 
-
-            //     ], 200);
+            //         'status' =>false,
+            //         'message' =>$message
+            //     ], 422);
 
             // }
 
-            $users = [];
+            // //validation of email takes place here
 
-            for ($i = 1; $i <= 200; $i++) {
-                $user = [
-                    'name' => 'User' . $i,
-                    'email' => 'user' . $i . '@example.com',
-                    'password' => bcrypt('password' . $i)
-                ];
-                $users[] = $user;
+                
+            // if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+            //     $message_email = 'Please enter a valid email address.';
+            //     return response()->json([
+            //         'message' => $message_email
+            //     ], 422);
+            // }
+            //If Email already exist
+            $userCount =User::where('email', $userData['email'])->count();
+            if($userCount){
+
+                $message = "Email already Exist";
+
+                return response()->json([
+
+                    "message" =>$message
+                ]);
             }
+
+
+                        
+            //this part commented out is actually working fine but the below is jsut a test of how to use array
+
+            foreach($userData['users'] as $key =>$value){
+
+                $user= new User();
+                $user->name = $value['name'];
+                $user ->email = $value['email'];
+                $user ->password =bcrypt($value ['password']);
+                $user->save();
+                return response()->json([
+                    'status' =>200,
+                    'message' =>'Users Added succesfully!'
+
+
+                ], 200);
+
+            }
+            //     //the method below help to generate data up to 200 using array
+            // $users = [];
+
+            // for ($i = 1; $i <= 200; $i++) {
+            //     $user = [
+            //         'name' => 'User' . $i,
+            //         'email' => 'user' . $i . '@example.com',
+            //         'password' => bcrypt('password' . $i)
+            //     ];
+            //     $users[] = $user;
+            // }
             
-            // Return the generated users as JSON response
-            return response()->json($users);
+            // // Return the generated users as JSON response
+            // return response()->json($users);
             
 
         }
