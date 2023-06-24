@@ -51,7 +51,7 @@ class UserComptroller extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function add_single_user(Request $request)
     {
         //this is another method of processing data into the database using post method
         if($request->isMethod('post')){
@@ -82,9 +82,29 @@ class UserComptroller extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function add_multiples_users(Request $request)
     {
-        //
+        if($request->isMethod('post')){
+
+            $userData =$request->input();
+
+            foreach($userData['users'] as $key =>$value){
+
+                $users = new User();
+                $users->name = $value['name'];
+                $users ->email = $value['email'];
+                $users ->password =bcrypt($value ['password']);
+                $users->save();
+                return response()->json([
+                    'status' =>200,
+                    'message' =>'Users Added succesfully!'
+
+
+                ], 200);
+
+            }
+
+        }
     }
 
     /**
