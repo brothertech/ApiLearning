@@ -82,13 +82,43 @@ class UserComptroller extends Controller
 
                 
                         if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
-                            $message_email ='Please enter valid email address';
-                        return response()->json([
-                            'message' =>$message_email
-                        ], 422);
+                            $error_message ='Please enter valid email address';
+                        // return response()->json([
+                        //     'message' =>$error_message
+                        // ], 422);
 
                         }
 
+                            $userCount =User::where('email', $userData['email'])->count();
+                            if($userCount >0){
+
+                                $error_message = "Email Already!";
+                                // return response()->json([
+
+                                //     'status' => false,
+                                //     'message' => $error_message
+                                // ], 422);
+                            }
+
+                            if(empty($userData['name']) || empty($userData['email']) || empty($userData['password'])){
+
+                                $error_message = "Enter Complete Details";
+                                // return response()->json([
+                                //     'status' =>false,
+                                //     'message' => $error_message
+                                // ], 403);
+                            }
+                            
+                            //instead of having different return responses, we can have one, i will comment on those one to showcase the example
+                            if(isset($error_message) &&!empty($error_message)){
+
+                                return response()->json([
+                                    "status" =>false,
+                                    "message" => $error_message
+                                ], 403);
+                            }
+
+                    
             $user = new User();
             $user->name=$userData['name'];
             $user->email=$userData['email'];
