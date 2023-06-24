@@ -13,7 +13,7 @@ class UserComptroller extends Controller
     public function getUsers($id=null)
     {
         if (empty($id)) {
-            $users = User::get();
+            $users = User::paginate();
         
             return response()->json([
                 'status' => 200,
@@ -88,21 +88,36 @@ class UserComptroller extends Controller
 
             $userData =$request->input();
 
-            foreach($userData['users'] as $key =>$value){
+            // foreach($userData['users'] as $key =>$value){
 
-                $users = new User();
-                $users->name = $value['name'];
-                $users ->email = $value['email'];
-                $users ->password =bcrypt($value ['password']);
-                $users->save();
-                return response()->json([
-                    'status' =>200,
-                    'message' =>'Users Added succesfully!'
+            //     $user= new User();
+            //     $user->name = $value['name'];
+            //     $user ->email = $value['email'];
+            //     $user ->password =bcrypt($value ['password']);
+            //     $user->save();
+            //     return response()->json([
+            //         'status' =>200,
+            //         'message' =>'Users Added succesfully!'
 
 
-                ], 200);
+            //     ], 200);
 
+            // }
+
+            $users = [];
+
+            for ($i = 1; $i <= 200; $i++) {
+                $user = [
+                    'name' => 'User' . $i,
+                    'email' => 'user' . $i . '@example.com',
+                    'password' => bcrypt('password' . $i)
+                ];
+                $users[] = $user;
             }
+            
+            // Return the generated users as JSON response
+            return response()->json($users);
+            
 
         }
     }
