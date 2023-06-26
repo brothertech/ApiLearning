@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
 class UserComptroller extends Controller
 {
@@ -164,11 +165,7 @@ class UserComptroller extends Controller
     /**
      * Display the specified resource.
      */
-    public function getUser( string $id)
-    {
-        //the example in getUsers shows how to combine both getAll and getId. getId is similar to find Id
-        
-    }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -294,16 +291,119 @@ class UserComptroller extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        if($request->isMethod('put')){
+
+            $userData =$request->input();
+
+            //validation comes here
+
+            $rules = [
+                'name' => 'required|string|max:23',
+                //'email' => 'required|email|unique:users', no need of updating email since in most website they don't update email once registere
+                'password' => [
+                    'required',
+                    Password::min(8)
+                        ->letters()
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols()
+                        ->uncompromised()
+                ]
+                
+                
+                
+                
+                
+                //'required|min:5|symbols'
+
+
+            ];
+            $validator =Validator::make($userData, $rules);
+            if ($validator ->fails()){
+
+            return response()->json([
+                    'status' =>422,
+                    'message' =>$validator->messages()
+                ], 422);
+            }
+            
+            User::where('id', '$id')->update(['name'=>$userData['name'], 'password'=>bcrypt($userData['password'])]);
+
+            // $user = User::find($id);
+            // $user ->name =$userData['name'];
+            // $user ->email =$userData['email'];
+            // $user ->password = bcrypt($userData['password']);
+            // $user ->update();
+
+            return response()->json([
+
+                'status' =>202,
+                'message' =>'Updated Succesfully'
+            ], 202);
+           
+        }
+
+      
     }
+
+    public function patch_name(Request $request, string $id)
+    {
+       // patch will only update one record unlike put that allows uodating more than one records
+       if ($request->isMethod('patch')) {
+        $userData = $request->input();
+    
+        User::where('id', '$id')->update(['name' => $userData['name']]);
+    
+        return response()->json([
+            'status' => 202,
+            'message' => 'Updated Successfully'
+        ], 202);
+    }
+    
+    }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function delete_single_user(string $id)
     {
-        //
+        User::where('id', '$id')->delete();
+        return response()->json([
+
+            'status' =>202,
+            'message'=>'User details deleted succesfully'
+        ], 202);
     }
+    public function delete_multiple_users($ids){
+        $ids = explode(",",$ids);
+       // echo $ids;
+        //echo "<pre>"; print_r($ids); die;
+        User::whereIn('id', $ids)->delete();
+        return response()->json([
+
+            'status' => 202,
+            'message' =>'Users Deleted Succesfully'
+        ], 202);
+
+
+    }
+
+                    // public function delete_multiple_users($ids)
+                    //                     {
+                    // $ids = explode(",", $ids);
+
+                    // User::whereIn('id', $ids)->delete();
+
+                    // return response()->json([
+                    //     'status' => 200,
+                    //     'message' => 'Multiple users deleted successfully'
+                    // ]);
+                    //                     }
+
+
+
+
 }

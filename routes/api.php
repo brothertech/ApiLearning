@@ -33,4 +33,7 @@ Route::get('users/{id}', [ApiController::class, 'show']);
 Route::get('stack/{id?}', [UserComptroller::class, 'getUsers']);//the ? make it an optional condition
 Route::post('stack', [UserComptroller::class, 'add_single_user']);
 Route::post('stack', [UserComptroller::class, 'add_multiples_users']);
-Route::put('stack', [UserComptroller::class, 'update']);
+Route::put('stack/{id}', [UserComptroller::class, 'update']);
+Route::patch('stack/{id}', [UserComptroller::class, 'patch_name']);
+Route::delete('stack/{id}', [UserComptroller::class, 'delete_single_user']);
+Route::delete('stacks/{ids}', [UserComptroller::class, 'delete_multiple_users']);
