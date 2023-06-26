@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserComptroller extends Controller
 {
@@ -81,43 +82,72 @@ class UserComptroller extends Controller
             //validation of email takes place here
 
                 
-                        if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
-                            $error_message ='Please enter valid email address';
-                        // return response()->json([
-                        //     'message' =>$error_message
-                        // ], 422);
+                        // if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                        //     $error_message ='Please enter valid email address';
+                        // // return response()->json([
+                        // //     'message' =>$error_message
+                        // // ], 422);
 
-                        }
+                        // }
 
-                            $userCount =User::where('email', $userData['email'])->count();
-                            if($userCount >0){
+                        //     $userCount =User::where('email', $userData['email'])->count();
+                        //     if($userCount >0){
 
-                                $error_message = "Email Already!";
-                                // return response()->json([
+                        //         $error_message = "Email Already!";
+                        //         // return response()->json([
 
-                                //     'status' => false,
-                                //     'message' => $error_message
-                                // ], 422);
-                            }
+                        //         //     'status' => false,
+                        //         //     'message' => $error_message
+                        //         // ], 422);
+                        //     }
 
-                            if(empty($userData['name']) || empty($userData['email']) || empty($userData['password'])){
+                        //     if(empty($userData['name']) || empty($userData['email']) || empty($userData['password'])){
 
-                                $error_message = "Enter Complete Details";
-                                // return response()->json([
-                                //     'status' =>false,
-                                //     'message' => $error_message
-                                // ], 403);
-                            }
+                        //         $error_message = "Enter Complete Details";
+                        //         // return response()->json([
+                        //         //     'status' =>false,
+                        //         //     'message' => $error_message
+                        //         // ], 403);
+                        //     }
                             
-                            //instead of having different return responses, we can have one, i will comment on those one to showcase the example
-                            if(isset($error_message) &&!empty($error_message)){
+                        //     //instead of having different return responses, we can have one, i will comment on those one to showcase the example
+                        //     if(isset($error_message) &&!empty($error_message)){
 
-                                return response()->json([
-                                    "status" =>false,
-                                    "message" => $error_message
-                                ], 403);
-                            }
+                        //         return response()->json([
+                        //             "status" =>false,
+                        //             "message" => $error_message
+                        //         ], 403);
+                        //     }
 
+                        //===========Adding advanced validation
+
+                        $rules =[
+                            'name' => 'required|string|max:23',
+                            'email' => 'required|email|unique:users',
+                            'password'=> 'required'
+
+
+                        ];
+
+                        //How to add custom validation message
+                        $customMessages =[
+
+                            'name.required' => 'Name field cannot be left empty',
+                            'name.string' =>'Name must contain characters only',
+                            'name.max' =>'The maximum allowed characters cannot be more than 23',
+                            'email.required' =>'Email field must be filled',
+                            'email.email' => 'Enter correct email format',
+                            'email.unique' => 'OOPs! we already have this email in our database',
+                            'password.required'=> 'Password must be filled in'
+                        ];
+
+                        $validator =Validator::make($userData, $rules, $customMessages);
+
+                        if($validator ->fails()){
+                            return response()->json([
+                                'message'=>$validator->errors()
+                            ], 422);
+                        }
                     
             $user = new User();
             $user->name=$userData['name'];
@@ -125,9 +155,9 @@ class UserComptroller extends Controller
             $user->password = bcrypt($userData['password']);
             $user->save();
             return response()->json([
-                'status' =>200,
+                'status' =>201,
                 'message' => 'Registration Successful'
-            ], 200);
+            ], 201);
         }
     }
 
@@ -148,57 +178,98 @@ class UserComptroller extends Controller
         if($request->isMethod('post')){
 
             $userData =$request->input();
+            //validation rules for multiples data
+            $rules =[
 
-            //Validation of APIs
+                'users.*.name' =>'required|string|max:23', //users is table name in the database
+                'users.*.email' =>'required|email|unique:users',
+                'users.*.password' =>'required'
+                // 'email' =>'required|email|unique:users',
+                // 'password' =>'required'
 
-            // if(empty($userData['name']) || empty($userData['email']) || empty($userData['password'])){
-            //     $message ='Please enter valid credential';
-            //     return response()->json([
+            ];
+            //custom validation messages
 
-            //         'status' =>false,
-            //         'message' =>$message
-            //     ], 422);
+            // 'name.required' => 'Name field cannot be left empty',
+            //                 'name.string' =>'Name must contain characters only',
+            //                 'name.max' =>'The maximum allowed characters cannot be more than 23',
+            //                 'email.required' =>'Email field must be filled',
+            //                 'email.email' => 'Enter correct email format',
+            //                 'email.unique' => 'OOPs! we already have this email in our database',
+            //                 'password.required'=> 'Password must be filled in'
 
-            // }
+            //making strong password, below is the tehnical know how
+            /*
 
-            // //validation of email takes place here
 
-                
-            // if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
-            //     $message_email = 'Please enter a valid email address.';
-            //     return response()->json([
-            //         'message' => $message_email
-            //     ], 422);
-            // }
-            //If Email already exist
-            $userCount =User::where('email', $userData['email'])->count();
-            if($userCount >0){
+             public function rules()
+    {
+        return [
+            'email' => 'required|email:rfc,dns|unique:users,email',
+            'username' => 'required|unique:users,username',
+            'password' => [
+                'required',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
+            'password_confirmation' => 'required|same:password'
+        ];
+    }
+}
 
-                $message = "Email already Exist";
+
+
+
+
+            // 'name.required' => 'Name field cannot be left empty',
+            //                 'name.string' =>'Name must contain characters only',
+            //                 'name.max' =>'The maximum allowed characters cannot be more than 23',
+            //                 'email.required' =>'Email field must be filled',
+            //                 'email.email' => 'Enter correct email format',
+            //                 'email.unique' => 'OOPs! we already have this email in our database',
+            //                 'password.required'=> 'Password must be filled in'
+            */
+
+            $customMessages =[
+                'users.*.name.required' => 'Name field cannot be left empty',
+                'users.*.name.string' =>'Name must contain characters only',
+                'users.*.name.max' =>'The maximum allowed characters cannot be more than 23',
+                'users.*.email.required' =>'Email field must be filled',
+                'users.*.email.email' =>'Enter correct email format',
+                'users.*.email.unique' =>'OOPs! we already have this email in our database',
+                'users.*.password.required' => 'Password must be filled in'
+
+            ];
+
+            $validator =Validator::make($userData, $rules, $customMessages);
+            if($validator->fails()){
 
                 return response()->json([
+                    'message' =>$validator->messages()
 
-                    "message" =>$message
-                ]);
+                ], 422);
             }
-
 
                         
             //this part commented out is actually working fine but the below is jsut a test of how to use array
 
             foreach($userData['users'] as $key =>$value){
-
+                  
                 $user= new User();
                 $user->name = $value['name'];
                 $user ->email = $value['email'];
                 $user ->password =bcrypt($value ['password']);
                 $user->save();
                 return response()->json([
-                    'status' =>200,
+                    'status' =>201,
                     'message' =>'Users Added succesfully!'
 
 
-                ], 200);
+                ], 201);
 
             }
             //     //the method below help to generate data up to 200 using array

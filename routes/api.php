@@ -32,4 +32,5 @@ Route::get('users/{id}', [ApiController::class, 'show']);
 
 Route::get('stack/{id?}', [UserComptroller::class, 'getUsers']);//the ? make it an optional condition
 Route::post('stack', [UserComptroller::class, 'add_single_user']);
-Route::post('stacks', [UserComptroller::class, 'add_multiples_users']);
+Route::post('stack', [UserComptroller::class, 'add_multiples_users']);
+Route::put('stack', [UserComptroller::class, 'update']);
